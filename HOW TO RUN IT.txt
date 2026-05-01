@@ -1,0 +1,42 @@
+---------- In windows: ----------
+
+1. Search "Turn Windows features on or off" in the start menu
+    Turn these on:
+        A. Hyper-V
+        B. Virtual Machine Platform
+        C. Windows Hypervisor Platform
+        D. Windows Subsystem for Linux
+    Then restart your computer.
+
+2. Install WSL and a linux distro:
+
+3. Install Docker from the Microsoft Store
+
+4. Open docker
+    A. Go to settings in docker
+    B. Go to Resources -> WSL Integration
+    C. Enable WSL integration
+    D. Select/Toggle the linux distro you installed with WSL
+
+5. To run it
+    open cmd and type "wsl"
+    type:
+        cd /mnt/c/users/<your-username>/the-folder-the-project-is-in/
+    type:
+        docker run -it --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v "$PWD:/app" chrono-rift-env bash
+    type:
+        make
+    type:
+        ./arbiter_bin & ./hip_bin & ./asp_bin &
+
+
+---------- In linux: ----------
+
+1. install docker
+
+2. run this command:
+docker run -it --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v "$PWD:/app" chrono-rift-env bash
+
+3. now you will be in the container's cmd, so then run these commands
+make
+./arbiter_bin & ./hip_bin & ./asp_bin &

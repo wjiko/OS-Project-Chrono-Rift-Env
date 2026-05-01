@@ -4,34 +4,31 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <thread>
-#include <vector>
+#include <pthread.h>
 #include <signal.h>
-#include <mutex>
-#include <condition_variable>
 #include "../shared.h"
 
 GameState* global_state = nullptr;
 bool running = true;
 
+volatile int local_input_lock = 0;
 int pending_action = -1; 
 int pending_target = -1;
 WeaponType pending_action_weapon = WPN_NONE;
-std::mutex input_mtx;
-std::condition_variable input_cv;
 
-void handle_stun(int sig) {
-    global_state->players[0].is_stunned = true; // simplified
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+void handle_stun(int) {
+    global_state->players[0].is_stunned = true;
+    sleep(3);
     global_state->players[0].is_stunned = false;
 }
 
-void player_thread(int player_id) {
+void* player_thread(void* arg) {
+    int player_id = *(int*)arg;
     while (running) {
-        sem_wait(&global_state->mutex);
+        custom_lock_acquire(&global_state->custom_global_lock);
         if (!global_state->game_running) {
-            sem_post(&global_state->mutex);
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            custom_lock_release(&global_state->custom_global_lock);
+            usleep(200000); 
             continue;
         }
         
@@ -40,26 +37,44 @@ void player_thread(int player_id) {
         }
 
         if (global_state->current_turn_id == player_id && global_state->current_turn_is_player && !global_state->action_submitted) {
-            sem_post(&global_state->mutex);
+            custom_lock_release(&global_state->custom_global_lock);
             
-            std::unique_lock<std::mutex> lock(input_mtx);
-            input_cv.wait(lock, []{ return pending_action != -1 || !running; });
+            // Wait for human input using custom busy-wait spinlock instead of condition variable
+            int my_action = -1;
+            int my_target = -1;
+            WeaponType my_weapon = WPN_NONE;
+            
+            while (running) {
+                custom_lock_acquire(&local_input_lock);
+                if (pending_action != -1) {
+                    my_action = pending_action;
+                    my_target = pending_target;
+                    my_weapon = pending_action_weapon;
+                    
+                    pending_action = -1; 
+                    pending_action_weapon = WPN_NONE;
+                    custom_lock_release(&local_input_lock);
+                    break;
+                }
+                custom_lock_release(&local_input_lock);
+                usleep(50000); // 50ms check interval
+            }
+            
             if (!running) break;
 
-            sem_wait(&global_state->mutex);
-            global_state->action_type = pending_action;
-            global_state->action_target_id = pending_target;
-            global_state->action_weapon = pending_action_weapon;
+            custom_lock_acquire(&global_state->custom_global_lock);
+            global_state->action_type = my_action;
+            global_state->action_target_id = my_target;
+            global_state->action_weapon = my_weapon;
             global_state->action_submitted = true;
-            sem_post(&global_state->mutex);
+            custom_lock_release(&global_state->custom_global_lock);
             
-            pending_action = -1; 
-            pending_action_weapon = WPN_NONE; 
         } else {
-            sem_post(&global_state->mutex);
+            custom_lock_release(&global_state->custom_global_lock);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        usleep(50000); 
     }
+    return NULL;
 }
 
 int main() {
@@ -80,7 +95,8 @@ int main() {
     sf::Font font;
     font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
 
-    std::vector<std::thread> threads;
+    pthread_t threads[MAX_PLAYERS];
+    int thread_args[MAX_PLAYERS];
     bool threads_started = false;
 
     while (window.isOpen() && running) {
@@ -89,38 +105,31 @@ int main() {
             if (event.type == sf::Event::Closed) {
                 window.close();
                 running = false;
-                input_cv.notify_all();
             }
             if (event.type == sf::Event::KeyPressed) {
-                sem_wait(&global_state->mutex);
+                custom_lock_acquire(&global_state->custom_global_lock);
                 if (!global_state->setup_complete) {
                     if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num4) {
                         global_state->num_players = event.key.code - sf::Keyboard::Num0;
                         global_state->setup_complete = true;
                     }
                 } else if (global_state->game_running) {
-                    std::lock_guard<std::mutex> lock(input_mtx);
+                    custom_lock_acquire(&local_input_lock);
                     if (event.key.code >= sf::Keyboard::Num0 && event.key.code <= sf::Keyboard::Num9) {
                         pending_action = ACTION_STRIKE;
                         pending_target = event.key.code - sf::Keyboard::Num0;
-                        input_cv.notify_all();
                     } else if (event.key.code == sf::Keyboard::S) {
                         pending_action = ACTION_SKIP;
-                        input_cv.notify_all();
                     } else if (event.key.code == sf::Keyboard::H) {
                         pending_action = ACTION_HEAL;
-                        input_cv.notify_all();
                     } else if (event.key.code == sf::Keyboard::E) {
                         pending_action = ACTION_EXHAUST;
-                        pending_target = 0; // default to enemy 0
-                        input_cv.notify_all();
+                        pending_target = 0; 
                     } else if (event.key.code == sf::Keyboard::U) {
                         pending_action = ACTION_ULTIMATE;
-                        input_cv.notify_all();
                     } else if (event.key.code == sf::Keyboard::W) {
                         pending_action = ACTION_USE_WEAPON;
-                        pending_target = 0; // target enemy 0 for simplicity
-                        
+                        pending_target = 0; 
                         WeaponType wpn = WPN_NONE;
                         for(int i=0; i<20; i++) {
                             if (global_state->players[global_state->current_turn_id].inv.slots[i] != WPN_NONE) {
@@ -129,23 +138,21 @@ int main() {
                             }
                         }
                         pending_action_weapon = wpn;
-                        input_cv.notify_all();
                     } else if (event.key.code == sf::Keyboard::I) {
                         pending_action = ACTION_SWAP_IN;
-                        input_cv.notify_all();
                     } else if (event.key.code == sf::Keyboard::L) {
                         pending_action = ACTION_LOCK_ARTIFACT;
-                        pending_action_weapon = WPN_SOLAR_CORE; // Try solar core
-                        input_cv.notify_all();
+                        pending_action_weapon = WPN_SOLAR_CORE; 
                     }
+                    custom_lock_release(&local_input_lock);
                 }
-                sem_post(&global_state->mutex);
+                custom_lock_release(&global_state->custom_global_lock);
             }
         }
         
         window.clear(sf::Color(30, 30, 30));
         
-        sem_wait(&global_state->mutex);
+        custom_lock_acquire(&global_state->custom_global_lock);
         
         if (!global_state->setup_complete) {
             sf::Text title("CHRONO RIFT", font, 40);
@@ -157,7 +164,8 @@ int main() {
         } else {
             if (!threads_started && global_state->game_running) {
                 for (int i = 0; i < global_state->num_players; i++) {
-                    threads.push_back(std::thread(player_thread, i));
+                    thread_args[i] = i;
+                    pthread_create(&threads[i], NULL, player_thread, &thread_args[i]);
                 }
                 threads_started = true;
             }
@@ -232,13 +240,16 @@ int main() {
             }
         }
         
-        sem_post(&global_state->mutex);
+        custom_lock_release(&global_state->custom_global_lock);
         window.display();
     }
 
     running = false;
-    input_cv.notify_all();
-    for (auto& th : threads) th.join();
+    
+    if (threads_started) {
+        for (int i = 0; i < global_state->num_players; i++) pthread_join(threads[i], NULL);
+    }
+    
     munmap(global_state, sizeof(GameState));
     return 0;
 }

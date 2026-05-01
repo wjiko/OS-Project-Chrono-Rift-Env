@@ -5,20 +5,17 @@
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
-#include <thread>
+#include <pthread.h>
 #include <signal.h>
 #include "../shared.h"
 
 GameState* global_state = nullptr;
 
-void deadlock_detector() {
+void* deadlock_detector(void* arg) {
     while (global_state && global_state->game_running) {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        sem_wait(&global_state->mutex);
+        sleep(2);
+        custom_lock_acquire(&global_state->custom_global_lock);
         
-        // Circular Wait Detection:
-        // If Player locks Solar and wants Lunar, but Enemy locks Lunar and wants Solar.
-        // For simplicity, if both artifacts are locked by different entities, we consider it a risk and force release.
         if (global_state->solar_core_locked_by_id != -1 && global_state->lunar_blade_locked_by_id != -1) {
             bool different_entities = (global_state->solar_core_locked_by_player != global_state->lunar_blade_locked_by_player) ||
                                       (global_state->solar_core_locked_by_id != global_state->lunar_blade_locked_by_id);
@@ -29,16 +26,17 @@ void deadlock_detector() {
                 global_state->lunar_blade_locked_by_id = -1;
             }
         }
-        sem_post(&global_state->mutex);
+        custom_lock_release(&global_state->custom_global_lock);
     }
+    return NULL;
 }
 
 void handle_alarm(int) {
     if (global_state) {
-        sem_wait(&global_state->mutex);
+        custom_lock_acquire(&global_state->custom_global_lock);
         global_state->asp_suspended = false;
         snprintf(global_state->log_message, sizeof(global_state->log_message), "Ultimate Ability Ended. Enemies Resumed.");
-        sem_post(&global_state->mutex);
+        custom_lock_release(&global_state->custom_global_lock);
     }
 }
 
@@ -72,7 +70,7 @@ bool allocate_weapon(Entity* ent, WeaponType w) {
 }
 
 void init_game() {
-    int p_roll[2] = {523, 822}; // 24I-0523 and 24I-0822
+    int p_roll[2] = {523, 822}; 
     srand(time(NULL));
     global_state->num_enemies = 2 + (rand() % 8); 
     
@@ -128,28 +126,30 @@ int main() {
     if (shm_fd == -1) return 1;
     ftruncate(shm_fd, sizeof(GameState));
     global_state = (GameState*)mmap(0, sizeof(GameState), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    sem_init(&global_state->mutex, 1, 1);
     
+    global_state->custom_global_lock = 0; 
     global_state->setup_complete = false;
     global_state->game_running = false;
     
     std::cout << "Arbiter waiting for setup...\n";
     while(true) {
-        sem_wait(&global_state->mutex);
+        custom_lock_acquire(&global_state->custom_global_lock);
         if (global_state->setup_complete) {
             init_game();
-            sem_post(&global_state->mutex);
+            custom_lock_release(&global_state->custom_global_lock);
             break;
         }
-        sem_post(&global_state->mutex);
+        custom_lock_release(&global_state->custom_global_lock);
         sleep(1);
     }
 
-    std::thread deadlock_th(deadlock_detector);
+    pthread_t deadlock_th;
+    pthread_create(&deadlock_th, NULL, deadlock_detector, NULL);
+    
     int npc_timeout_ticks = 0;
 
     while (global_state->game_running) {
-        sem_wait(&global_state->mutex);
+        custom_lock_acquire(&global_state->custom_global_lock);
         
         int alive_players = 0;
         for (int i=0; i<global_state->num_players; i++) if (global_state->players[i].is_alive) alive_players++;
@@ -160,14 +160,13 @@ int main() {
             snprintf(global_state->log_message, sizeof(global_state->log_message), 
                      alive_players == 0 ? "GAME OVER! Enemies win." : "VICTORY! Players win.");
             global_state->game_running = false;
-            sem_post(&global_state->mutex);
+            custom_lock_release(&global_state->custom_global_lock);
             break;
         }
         
-        // Timeout for NPCs
         if (global_state->current_turn_id != -1 && !global_state->current_turn_is_player && !global_state->action_submitted) {
             npc_timeout_ticks++;
-            if (npc_timeout_ticks >= 15) { // 3 seconds at 200ms tick
+            if (npc_timeout_ticks >= 15) { 
                 global_state->action_type = ACTION_SKIP;
                 global_state->action_submitted = true;
                 npc_timeout_ticks = 0;
@@ -221,7 +220,7 @@ int main() {
                     target->hp = 0;
                     target->is_alive = false;
                     if (global_state->current_turn_is_player) {
-                        WeaponType drop = (WeaponType)((rand() % 9) + 1); // Random drop including Eclipse Relic
+                        WeaponType drop = (WeaponType)((rand() % 9) + 1); 
                         allocate_weapon(actor, drop);
                         snprintf(global_state->log_message, sizeof(global_state->log_message), "P%d kills E%d & gets %s!", actor->id, target->id, get_weapon_name(drop));
                     }
@@ -289,11 +288,11 @@ int main() {
             global_state->current_turn_id = -1;
         }
 
-        sem_post(&global_state->mutex);
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        custom_lock_release(&global_state->custom_global_lock);
+        usleep(200000); // 200ms
     }
 
-    deadlock_th.join();
+    pthread_join(deadlock_th, NULL);
     munmap(global_state, sizeof(GameState));
     shm_unlink(SHM_NAME);
     return 0;

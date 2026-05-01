@@ -1,11 +1,10 @@
 #pragma once
 
-#include <semaphore.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
 
-#define SHM_NAME "/chronorift_shm_2026_final"
+#define SHM_NAME "/chronorift_shm_2026_testset"
 #define MAX_PLAYERS 4
 #define MAX_ENEMIES 9
 
@@ -53,7 +52,7 @@ struct Entity {
 };
 
 struct GameState {
-    sem_t mutex;          
+    volatile int custom_global_lock; 
     
     bool setup_complete;
     int num_players;
@@ -73,7 +72,6 @@ struct GameState {
     int action_target_id;
     WeaponType action_weapon;
     
-    // -1 if free, otherwise holds the ID of the entity locking it
     int solar_core_locked_by_id; 
     bool solar_core_locked_by_player;
     
@@ -82,6 +80,18 @@ struct GameState {
     
     char log_message[256];
 };
+
+static inline void custom_lock_acquire(volatile int* lock) {
+    while (__sync_lock_test_and_set(lock, 1)) {
+        while (*lock) {
+            usleep(10); 
+        }
+    }
+}
+
+static inline void custom_lock_release(volatile int* lock) {
+    __sync_lock_release(lock);
+}
 
 static inline int get_weapon_size(WeaponType w) {
     switch(w) {

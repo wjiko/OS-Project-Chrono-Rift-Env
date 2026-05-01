@@ -2,8 +2,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <thread>
-#include <vector>
+#include <pthread.h>
 #include <signal.h>
 #include <cstdlib>
 #include "../shared.h"
@@ -11,18 +10,18 @@
 GameState* global_state = nullptr;
 bool running = true;
 
-// Signal handler for Stun Mechanic
-void handle_stun(int sig) {
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+void handle_stun(int) {
+    sleep(3);
 }
 
-void enemy_thread(int enemy_id) {
+void* enemy_thread(void* arg) {
+    int enemy_id = *(int*)arg;
     while (running) {
-        sem_wait(&global_state->mutex);
+        custom_lock_acquire(&global_state->custom_global_lock);
         
         if (!global_state->game_running) {
             running = false;
-            sem_post(&global_state->mutex);
+            custom_lock_release(&global_state->custom_global_lock);
             break;
         }
         
@@ -30,7 +29,6 @@ void enemy_thread(int enemy_id) {
             global_state->enemies[enemy_id].pid = getpid();
         }
 
-        // Check if it's my turn
         if (global_state->current_turn_id == enemy_id && !global_state->current_turn_is_player && !global_state->action_submitted) {
             
             int target = -1;
@@ -41,19 +39,20 @@ void enemy_thread(int enemy_id) {
                 }
             }
             
-            if (target != -1 && (rand() % 100) > 10) { // 90% chance to attack
+            if (target != -1 && (rand() % 100) > 10) { 
                 global_state->action_type = ACTION_STRIKE;
                 global_state->action_target_id = target;
             } else {
-                global_state->action_type = ACTION_SKIP; // 10% chance to skip
+                global_state->action_type = ACTION_SKIP; 
             }
             
             global_state->action_submitted = true;
         }
         
-        sem_post(&global_state->mutex);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Polling delay
+        custom_lock_release(&global_state->custom_global_lock);
+        usleep(100000); // 100ms
     }
+    return NULL;
 }
 
 int main() {
@@ -70,24 +69,26 @@ int main() {
     global_state = (GameState*)mmap(0, sizeof(GameState), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
     while (true) {
-        sem_wait(&global_state->mutex);
+        custom_lock_acquire(&global_state->custom_global_lock);
         if (global_state->game_running) {
-            sem_post(&global_state->mutex);
+            custom_lock_release(&global_state->custom_global_lock);
             break;
         }
-        sem_post(&global_state->mutex);
+        custom_lock_release(&global_state->custom_global_lock);
         sleep(1);
     }
 
-    std::vector<std::thread> threads;
     int num_enemies = global_state->num_enemies;
+    pthread_t threads[MAX_ENEMIES];
+    int thread_args[MAX_ENEMIES];
     
     for (int i = 0; i < num_enemies; i++) {
-        threads.push_back(std::thread(enemy_thread, i));
+        thread_args[i] = i;
+        pthread_create(&threads[i], NULL, enemy_thread, &thread_args[i]);
     }
     
-    for (auto& th : threads) {
-        th.join();
+    for (int i = 0; i < num_enemies; i++) {
+        pthread_join(threads[i], NULL);
     }
 
     munmap(global_state, sizeof(GameState));
