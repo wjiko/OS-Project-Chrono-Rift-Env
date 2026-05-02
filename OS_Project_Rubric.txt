@@ -1,0 +1,145 @@
+NUCES Computer Science                                                Operating Systems Project Spring 2026
+
+Chrono Rift
+
+Group Number: _________
+
+Group member1 Name & Roll No. ______________________________________
+
+Group member2 Name & Roll No. _____________________________________
+
+Note: Assign your marks before printing the sheet. Handwritten entries will not be accepted.
+
+
+========================================
+Process Architecture & IPC (40 Marks)
+========================================
+
+| Functionality                                              | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------------------|-------------|------------------------|-----------------|
+| Proper Process Isolation (Arbiter, Human, Strategic)       | 10          |                        |                 |
+| Correct Use of Shared Memory (No Pipes)                    | 10          |                        |                 |
+| Process Lifecycle Management (creation/termination,cleanup)| 10          |                        |                 |
+| Correct Communication Design                               | 10          |                        |                 |
+
+
+========================================
+Synchronization & Concurrency Control (40 Marks)
+========================================
+
+| Functionality                                        | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------------|-------------|------------------------|-----------------|
+| Mutex/Semaphore Implementation                       | 10          |                        |                 |
+| Race Condition Prevention                            | 10          |                        |                 |
+| Concurrent Access Handling (Threads + Processes)     | 10          |                        |                 |
+| Shared Memory Consistency under load                 | 10          |                        |                 |
+
+
+========================================
+Multithreading & Execution Model (40 Marks)
+========================================
+
+| Functionality                                        | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------------|-------------|------------------------|-----------------|
+| Thread-per-NPC Implementation                        | 10          |                        |                 |
+| Player Thread Handling (Active/Idle Logic)           | 10          |                        |                 |
+| Thread Synchronization with Shared Memory            | 10          |                        |                 |
+| Efficient Thread Scheduling & Coordination           | 10          |                        |                 |
+
+
+========================================
+Scheduling & Temporal Logic (40 Marks)
+========================================
+
+| Functionality                                        | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------------|-------------|------------------------|-----------------|
+| Stamina-Based Scheduling Logic                       | 10          |                        |                 |
+| Arrival Time Computation Accuracy                    | 10          |                        |                 |
+| Serial Execution Enforcement                         | 10          |                        |                 |
+| Turn Reset & Recalculation Logic                     | 10          |                        |                 |
+
+
+========================================
+Signals & Asynchronous Interrupts (40 Marks)
+========================================
+
+| Functionality                                        | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------------|-------------|------------------------|-----------------|
+| Signal-Based Stun Mechanism                          | 10          |                        |                 |
+| Correct Stun Duration (exact 3 seconds)              | 5           |                        |                 |
+| Non-Blocking Interrupt Handling                      | 5           |                        |                 |
+| Ultimate Ability (Signal-Only Suspension)            | 10          |                        |                 |
+| Correct Ultimate Duration (exact 10 seconds)         | 5           |                        |                 |
+| Signal Handling Robustness (SIGALRM, custom handlers)| 5           |                        |                 |
+
+
+========================================
+Deadlock Handling & Resource Management (40 Marks)
+========================================
+
+| Functionality                                        | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------------|-------------|------------------------|-----------------|
+| Global Resource Table Implementation                 | 10          |                        |                 |
+| Resource Locking Mechanism                           | 5           |                        |                 |
+| Deadlock Detection (Circular Wait)                   | 10          |                        |                 |
+| Deadlock Resolution Strategy                         | 10          |                        |                 |
+| Correct Handling of Dynamic Artifact (Eclipse Relic) | 5           |                        |                 |
+
+
+========================================
+Memory Management (40 Marks)
+========================================
+
+| Functionality                                                  | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|----------------------------------------------------------------|-------------|------------------------|-----------------|
+| Contiguous Allocation Strategy                                 | 10          |                        |                 |
+| Fragmentation Handling                                         | 10          |                        |                 |
+| Swap In / Swap Out Logic                                       | 10          |                        |                 |
+| Long-Term Storage Handling & Retrieval                         | 5           |                        |                 |
+| Correct Enforcement of Slot Constraints (Solar + Lunar = full) | 5           |                        |                 |
+
+
+========================================
+Gameplay Logic & Mechanics (40 Marks)
+========================================
+
+| Functionality                                              | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------------------|-------------|------------------------|-----------------|
+| Correct Implementation of Player Actions                   | 10          |                        |                 |
+| Enemy Behavior & Decision Logic                            | 5           |                        |                 |
+| Weapon Drop Mechanics (player choice + NPC pickup rule)    | 5           |                        |                 |
+| Win / Lose / Quit Conditions (including SIGTERM)           | 10          |                        |                 |
+| Correct Randomization using Roll Number Seed               | 10          |                        |                 |
+
+
+========================================
+Rendering & System Integration (30 Marks)
+========================================
+
+| Functionality                       | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|-------------------------------------|-------------|------------------------|-----------------|
+| Dedicated Rendering Thread          | 5           |                        |                 |
+| Safe Shared Memory Reads (UI)       | 5           |                        |                 |
+| Real-Time State Visualization       | 10          |                        |                 |
+| Non-Blocking UI Execution           | 10          |                        |                 |
+
+
+========================================
+Environment, Build & Constraints (20 Marks)
+========================================
+
+| Functionality                             | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|-------------------------------------------|-------------|------------------------|-----------------|
+| Runs Successfully in Docker Environment   | 10          |                        |                 |
+| Correct Dockerfile & Required Structure   | 5           |                        |                 |
+| Functional Makefile                       | 5           |                        |                 |
+
+
+========================================
+Bonus (30 Marks)
+========================================
+
+| Functionality                                  | Total Marks | Self-Assessment Scores | Evaluated Marks |
+|------------------------------------------------|-------------|------------------------|-----------------|
+| Multiplayer Implementation                     | 20          |                        |                 |
+| Stability & synchronization in multiplayer mode| 10          |                        |                 |

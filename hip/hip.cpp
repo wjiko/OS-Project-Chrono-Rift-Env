@@ -22,6 +22,10 @@ void handle_stun(int) {
     global_state->players[0].is_stunned = false;
 }
 
+void handle_sigterm(int) {
+    running = false;
+}
+
 void* player_thread(void* arg) {
     int player_id = *(int*)arg;
     while (running) {
@@ -79,6 +83,8 @@ void* player_thread(void* arg) {
 
 int main() {
     signal(SIGUSR1, handle_stun);
+    signal(SIGINT, handle_sigterm);
+    signal(SIGTERM, handle_sigterm);
 
     int shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
     if (shm_fd == -1) {

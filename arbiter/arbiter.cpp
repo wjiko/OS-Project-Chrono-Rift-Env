@@ -40,6 +40,15 @@ void handle_alarm(int) {
     }
 }
 
+void handle_sigterm(int) {
+    if (global_state) {
+        custom_lock_acquire(&global_state->custom_global_lock);
+        global_state->game_running = false;
+        snprintf(global_state->log_message, sizeof(global_state->log_message), "Game forcibly terminated (SIGTERM).");
+        custom_lock_release(&global_state->custom_global_lock);
+    }
+}
+
 bool allocate_weapon(Entity* ent, WeaponType w) {
     int sz = get_weapon_size(w);
     int streak = 0;
@@ -121,6 +130,8 @@ void init_game() {
 
 int main() {
     signal(SIGALRM, handle_alarm);
+    signal(SIGINT, handle_sigterm);
+    signal(SIGTERM, handle_sigterm);
 
     int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
     if (shm_fd == -1) return 1;

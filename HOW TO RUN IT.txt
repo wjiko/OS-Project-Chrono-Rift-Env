@@ -17,6 +17,7 @@
     B. Go to Resources -> WSL Integration
     C. Enable WSL integration
     D. Select/Toggle the linux distro you installed with WSL
+    E. Restart
 
 5. To run it
     open cmd and type "wsl"
