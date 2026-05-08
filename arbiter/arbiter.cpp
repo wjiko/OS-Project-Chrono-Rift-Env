@@ -91,7 +91,7 @@ void init_game() {
         p.hp = (roll % 100) + (100 + rand() % 201);
         p.max_hp = p.hp;
         p.damage = (roll % 10) + 10;
-        p.speed = 100 / global_state->num_players;
+        p.speed = (roll % 10) + 25;
         p.max_stamina = 100;
         p.stamina = 0;
         p.is_alive = true;
@@ -110,8 +110,8 @@ void init_game() {
         e.hp = (roll % 100) + (50 + rand() % 151);
         e.max_hp = e.hp;
         e.damage = ((roll / 10) % 10) * 5 + 15;
-        e.speed = 10 + (rand() % 21);
-        e.max_stamina = 150;
+        e.speed = ((roll / 10) % 10) + 20;
+        e.max_stamina = 100;
         e.stamina = 0;
         e.is_alive = true;
         e.is_stunned = false;
@@ -188,28 +188,49 @@ int main() {
         }
         
         if (global_state->current_turn_id == -1) {
-            bool turn_assigned = false;
-            for (int i = 0; i < global_state->num_players && !turn_assigned; i++) {
+            // Step 1: Increment ALL entities' stamina every tick
+            for (int i = 0; i < global_state->num_players; i++) {
                 if (global_state->players[i].is_alive && !global_state->players[i].is_stunned) {
                     global_state->players[i].stamina += global_state->players[i].speed;
-                    if (global_state->players[i].stamina >= global_state->players[i].max_stamina) {
-                        global_state->players[i].stamina = global_state->players[i].max_stamina;
-                        global_state->current_turn_id = i;
-                        global_state->current_turn_is_player = true;
-                        turn_assigned = true;
+                }
+            }
+            if (!global_state->asp_suspended) {
+                for (int i = 0; i < global_state->num_enemies; i++) {
+                    if (global_state->enemies[i].is_alive && !global_state->enemies[i].is_stunned) {
+                        global_state->enemies[i].stamina += global_state->enemies[i].speed;
                     }
                 }
             }
-            for (int i = 0; i < global_state->num_enemies && !turn_assigned && !global_state->asp_suspended; i++) {
-                if (global_state->enemies[i].is_alive && !global_state->enemies[i].is_stunned) {
-                    global_state->enemies[i].stamina += global_state->enemies[i].speed;
-                    if (global_state->enemies[i].stamina >= global_state->enemies[i].max_stamina) {
-                        global_state->enemies[i].stamina = global_state->enemies[i].max_stamina;
-                        global_state->current_turn_id = i;
-                        global_state->current_turn_is_player = false;
-                        turn_assigned = true;
+            
+            // Step 2: Find the entity with the highest stamina that crossed the threshold
+            int best_id = -1;
+            bool best_is_player = false;
+            int best_stamina = 0;
+            
+            for (int i = 0; i < global_state->num_players; i++) {
+                if (global_state->players[i].is_alive && !global_state->players[i].is_stunned &&
+                    global_state->players[i].stamina >= global_state->players[i].max_stamina &&
+                    global_state->players[i].stamina > best_stamina) {
+                    best_stamina = global_state->players[i].stamina;
+                    best_id = i;
+                    best_is_player = true;
+                }
+            }
+            if (!global_state->asp_suspended) {
+                for (int i = 0; i < global_state->num_enemies; i++) {
+                    if (global_state->enemies[i].is_alive && !global_state->enemies[i].is_stunned &&
+                        global_state->enemies[i].stamina >= global_state->enemies[i].max_stamina &&
+                        global_state->enemies[i].stamina > best_stamina) {
+                        best_stamina = global_state->enemies[i].stamina;
+                        best_id = i;
+                        best_is_player = false;
                     }
                 }
+            }
+            
+            if (best_id != -1) {
+                global_state->current_turn_id = best_id;
+                global_state->current_turn_is_player = best_is_player;
             }
         } 
         else if (global_state->action_submitted) {
