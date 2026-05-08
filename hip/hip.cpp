@@ -212,7 +212,7 @@ int main() {
                 window.draw(info);
                 
                 if (global_state->current_turn_is_player && global_state->current_turn_id == i) {
-                    sf::Text turnTxt("<- YOUR TURN! 0-9(Strike), W(Weapon), I(Swap), H(Heal), E(Exhaust), U(Ult), L(Lock)", font, 12);
+                    sf::Text turnTxt("<- YOUR TURN!\n0-9(Atk), W(Wpn), I(Swap), H(Heal)\nE(Exhaust), U(Ult), L(Lock)", font, 12);
                     turnTxt.setFillColor(sf::Color::Yellow);
                     turnTxt.setPosition(420, y);
                     window.draw(turnTxt);

@@ -88,7 +88,7 @@ void init_game() {
         int roll = p_roll[i % 2];
         p.id = i;
         p.is_player = true;
-        p.hp = roll + (100 + rand() % 901);
+        p.hp = (roll % 100) + (100 + rand() % 201);
         p.max_hp = p.hp;
         p.damage = (roll % 10) + 10;
         p.speed = 100 / global_state->num_players;
@@ -109,7 +109,7 @@ void init_game() {
         e.is_player = false;
         e.hp = (roll % 100) + (50 + rand() % 151);
         e.max_hp = e.hp;
-        e.damage = ((roll / 10) % 10) + 10;
+        e.damage = ((roll / 10) % 10) * 5 + 15;
         e.speed = 10 + (rand() % 21);
         e.max_stamina = 150;
         e.stamina = 0;
