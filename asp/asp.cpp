@@ -35,12 +35,17 @@ void* enemy_thread(void* arg) {
 
         if (global_state->current_turn_id == enemy_id && !global_state->current_turn_is_player && !global_state->action_submitted) {
             
-            int target = -1;
+            int targets[MAX_PLAYERS];
+            int valid_count = 0;
             for (int i=0; i<global_state->num_players; i++) {
                 if (global_state->players[i].is_alive) {
-                    target = i;
-                    break;
+                    targets[valid_count++] = i;
                 }
+            }
+            
+            int target = -1;
+            if (valid_count > 0) {
+                target = targets[rand() % valid_count];
             }
             
             if (target != -1 && (rand() % 100) > 10) { 
@@ -63,6 +68,7 @@ int main() {
     signal(SIGUSR1, handle_stun);
     signal(SIGINT, handle_sigterm);
     signal(SIGTERM, handle_sigterm);
+    srand(time(NULL) ^ getpid());
 
     int shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
     if (shm_fd == -1) {

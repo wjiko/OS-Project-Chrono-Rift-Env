@@ -122,8 +122,11 @@ int main() {
                 } else if (global_state->game_running) {
                     custom_lock_acquire(&local_input_lock);
                     if (event.key.code >= sf::Keyboard::Num0 && event.key.code <= sf::Keyboard::Num9) {
-                        pending_action = ACTION_STRIKE;
-                        pending_target = event.key.code - sf::Keyboard::Num0;
+                        int num = event.key.code - sf::Keyboard::Num0;
+                        if (num < global_state->num_enemies) {
+                            pending_action = ACTION_STRIKE;
+                            pending_target = num;
+                        }
                     } else if (event.key.code == sf::Keyboard::S) {
                         pending_action = ACTION_SKIP;
                     } else if (event.key.code == sf::Keyboard::H) {
