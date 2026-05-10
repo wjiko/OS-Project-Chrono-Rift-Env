@@ -1,0 +1,415 @@
+
+
+=========================================
+NEW GAME STARTED: 1 Players, 9 Enemies.
+=========================================
+
+[GAME EVENT] Game Started! 9 enemies. Kill 10 to win.
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 0 to STRIKE Enemy 0
+[GAME EVENT] P0 hits E0 for 13 dmg! (HP: 76)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 0 to STRIKE Enemy 0
+[GAME EVENT] P0 hits E0 for 13 dmg! (HP: 63)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 0 to STRIKE Enemy 0
+[GAME EVENT] P0 hits E0 for 13 dmg! (HP: 50)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 0 to STRIKE Enemy 0
+[GAME EVENT] P0 hits E0 for 13 dmg! (HP: 37)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 0 to STRIKE Enemy 0
+[GAME EVENT] P0 hits E0 for 13 dmg! (HP: 24)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P0 for 12 dmg! (HP: 654)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 1 to STRIKE Enemy 1
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E1 for 13 dmg! (HP: 136)
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] Enemy 2 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 6 ---
+[GAME EVENT] E6 hits P0 for 12 dmg! (HP: 642)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 205)
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P0 for 12 dmg! (HP: 630)
+
+--- TURN ASSIGNED TO: Enemy 7 ---
+[GAME EVENT] E7 hits P0 for 12 dmg! (HP: 618)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 'W' to USE WEAPON (Iron Halberd).
+[GAME EVENT] P0 kills E0! Got Frostbow. Kills: 1/10
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P0 for 12 dmg! (HP: 606)
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] E2 hits P0 for 12 dmg! (HP: 594)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 'S' to SKIP turn.
+[GAME EVENT] Player 0 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 8 ---
+[GAME EVENT] E8 hits P0 for 12 dmg! (HP: 582)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P0 for 12 dmg! (HP: 570)
+
+--- TURN ASSIGNED TO: Enemy 6 ---
+[GAME EVENT] E6 hits P0 for 12 dmg! (HP: 558)
+
+--- TURN ASSIGNED TO: Enemy 4 ---
+[GAME EVENT] E4 hits P0 for 12 dmg! (HP: 546)
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P0 for 12 dmg! (HP: 534)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P0 for 12 dmg! (HP: 522)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 'U' for ULTIMATE ability.
+[GAME EVENT] P0: Need BOTH Solar Core AND Lunar Blade locked!
+
+--- TURN ASSIGNED TO: Enemy 7 ---
+[GAME EVENT] E7 hits P0 for 12 dmg! (HP: 510)
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] E2 hits P0 for 12 dmg! (HP: 498)
+
+--- TURN ASSIGNED TO: Enemy 6 ---
+[GAME EVENT] E6 hits P0 for 12 dmg! (HP: 486)
+
+--- TURN ASSIGNED TO: Enemy 8 ---
+[GAME EVENT] E8 hits P0 for 12 dmg! (HP: 474)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P0 for 12 dmg! (HP: 462)
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P0 for 12 dmg! (HP: 450)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P0 for 12 dmg! (HP: 438)
+
+--- TURN ASSIGNED TO: Player 0 ---
+NEW GAME STARTED: 1 Players, 5 Enemies.
+======================================================
+
+[GAME EVENT] Game Started! 5 enemies. Kill 10 to win.
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 118)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 'H' to HEAL.
+[GAME EVENT] P0 HEALS for 112 HP! (HP: 1125/1125)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 'H' to HEAL.
+
+--- TURN ASSIGNED TO: Player 0 ---
+NEW GAME STARTED: 3 Players, 6 Enemies.
+======================================================
+
+[GAME EVENT] Game Started! 6 enemies. Kill 10 to win.
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 1 to STRIKE Enemy 1
+[GAME EVENT] P0 hits E1 for 13 dmg! (HP: 63)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P1 hits E2 for 12 dmg! (HP: 76)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P2 hits E3 for 13 dmg! (HP: 144)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] Enemy 3 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P2 for 12 dmg! (HP: 1320)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] Enemy 5 SKIPS turn.
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 63)
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] E2 hits P2 for 12 dmg! (HP: 1308)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 1 to STRIKE Enemy 1
+[GAME EVENT] P1 hits E1 for 12 dmg! (HP: 51)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 1 to STRIKE Enemy 1
+[GAME EVENT] P2 hits E1 for 13 dmg! (HP: 38)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] Enemy 3 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P0 for 12 dmg! (HP: 732)
+
+--- TURN ASSIGNED TO: Enemy 4 ---
+[GAME EVENT] E4 hits P2 for 12 dmg! (HP: 1296)
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P1 for 12 dmg! (HP: 992)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 'W' to USE WEAPON (Iron Halberd).
+[GAME EVENT] P1 hits E0 for 55 dmg! (HP: 110)
+
+--- TURN ASSIGNED TO: Enemy 0 ---
+[GAME EVENT] Enemy 0 SKIPS turn.
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 'E' to EXHAUST enemy stamina.
+[GAME EVENT] P0 EXHAUSTS E0! Stamina drained by 13.
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 'I' to SWAP IN weapon from storage.
+[GAME EVENT] P2: Long-term storage is empty!
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P2 for 12 dmg! (HP: 1284)
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] E2 hits P0 for 12 dmg! (HP: 720)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P1 for 12 dmg! (HP: 980)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 'U' for ULTIMATE ability.
+[GAME EVENT] P1: Need BOTH Solar Core AND Lunar Blade locked!
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P1 for 12 dmg! (HP: 968)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 1 to STRIKE Enemy 1
+[USER INPUT] Player 2 pressed 1 to STRIKE Enemy 1
+[GAME EVENT] P2 hits E1 for 13 dmg! (HP: 25)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 1 to STRIKE Enemy 1
+[GAME EVENT] P0 hits E1 for 13 dmg! (HP: 12)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P1 for 12 dmg! (HP: 956)
+
+--- TURN ASSIGNED TO: Enemy 0 ---
+[GAME EVENT] E0 hits P0 for 12 dmg! (HP: 708)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[GAME EVENT] P1 kills E1! Got Frostbow. Kills: 1/10
+
+--- TURN ASSIGNED TO: Enemy 4 ---
+[GAME EVENT] E4 hits P2 for 12 dmg! (HP: 1272)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P2 for 12 dmg! (HP: 1260)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P2 hits E2 for 13 dmg! (HP: 50)
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] E2 hits P0 for 12 dmg! (HP: 696)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] Enemy 3 SKIPS turn.
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 2 to STRIKE Enemy 2
+[USER INPUT] Player 1 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P1 hits E2 for 12 dmg! (HP: 38)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 25)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P2 hits E2 for 13 dmg! (HP: 12)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P2 for 12 dmg! (HP: 1248)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P2 for 12 dmg! (HP: 1236)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P1 kills E2! Got Thunderstaff. Kills: 2/10
+
+--- TURN ASSIGNED TO: Player 0 ---
+[GAME EVENT] P0 kills E2! Got Obsidian Axe. Kills: 3/10
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P2 hits E3 for 13 dmg! (HP: 131)
+
+--- TURN ASSIGNED TO: Enemy 4 ---
+[GAME EVENT] Enemy 4 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 0 ---
+[GAME EVENT] E0 hits P1 for 12 dmg! (HP: 944)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P0 for 12 dmg! (HP: 684)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 3 to STRIKE Enemy 3
+[USER INPUT] Player 1 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P1 hits E3 for 12 dmg! (HP: 119)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P0 hits E3 for 13 dmg! (HP: 106)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P2 for 12 dmg! (HP: 1224)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P2 hits E3 for 13 dmg! (HP: 93)
+
+--- TURN ASSIGNED TO: Enemy 4 ---
+[GAME EVENT] E4 hits P1 for 12 dmg! (HP: 932)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[USER INPUT] Player 1 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P1 hits E3 for 12 dmg! (HP: 81)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P0 for 12 dmg! (HP: 672)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P0 hits E3 for 13 dmg! (HP: 68)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P2 hits E3 for 13 dmg! (HP: 55)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] E5 hits P0 for 12 dmg! (HP: 660)
+
+--- TURN ASSIGNED TO: Player 1 ---
+[GAME EVENT] P1 hits E3 for 12 dmg! (HP: 43)
+
+--- TURN ASSIGNED TO: Enemy 0 ---
+[GAME EVENT] E0 hits P1 for 12 dmg! (HP: 920)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P2 for 12 dmg! (HP: 1212)
+
+--- TURN ASSIGNED TO: Player 2 ---
+[USER INPUT] Player 2 pressed 3 to STRIKE Enemy 3
+NEW GAME STARTED: 1 Players, 9 Enemies.
+======================================================
+
+[GAME EVENT] Game Started! 9 enemies. Kill 10 to win.
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 1 to STRIKE Enemy 1
+[GAME EVENT] P0 hits E1 for 13 dmg! (HP: 88)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 72)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 59)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 46)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 3 to STRIKE Enemy 3
+[GAME EVENT] P0 hits E3 for 13 dmg! (HP: 140)
+
+--- TURN ASSIGNED TO: Enemy 7 ---
+[GAME EVENT] Enemy 7 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 8 ---
+[GAME EVENT] E8 hits P0 for 12 dmg! (HP: 1208)
+
+--- TURN ASSIGNED TO: Enemy 0 ---
+[GAME EVENT] E0 hits P0 for 12 dmg! (HP: 1196)
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] Enemy 2 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 7 ---
+[GAME EVENT] E7 hits P0 for 12 dmg! (HP: 1184)
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P0 for 12 dmg! (HP: 1172)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P0 for 12 dmg! (HP: 1160)
+
+--- TURN ASSIGNED TO: Enemy 4 ---
+[GAME EVENT] E4 hits P0 for 12 dmg! (HP: 1148)
+
+--- TURN ASSIGNED TO: Enemy 8 ---
+[GAME EVENT] Enemy 8 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 2 ---
+[GAME EVENT] E2 hits P0 for 12 dmg! (HP: 1136)
+
+--- TURN ASSIGNED TO: Enemy 5 ---
+[GAME EVENT] Enemy 5 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 7 ---
+[GAME EVENT] E7 hits P0 for 12 dmg! (HP: 1124)
+
+--- TURN ASSIGNED TO: Player 0 ---
+[USER INPUT] Player 0 pressed 2 to STRIKE Enemy 2
+[GAME EVENT] P0 hits E2 for 13 dmg! (HP: 33)
+
+--- TURN ASSIGNED TO: Enemy 0 ---
+[GAME EVENT] Enemy 0 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 8 ---
+[GAME EVENT] E8 hits P0 for 12 dmg! (HP: 1112)
+
+--- TURN ASSIGNED TO: Enemy 6 ---
+[GAME EVENT] E6 hits P0 for 12 dmg! (HP: 1100)
+
+--- TURN ASSIGNED TO: Enemy 1 ---
+[GAME EVENT] E1 hits P0 for 12 dmg! (HP: 1088)
+
+--- TURN ASSIGNED TO: Enemy 3 ---
+[GAME EVENT] E3 hits P0 for 12 dmg! (HP: 1076)
+
+--- TURN ASSIGNED TO: Enemy 7 ---
+[GAME EVENT] Enemy 7 SKIPS turn.
+
+--- TURN ASSIGNED TO: Enemy 0 ---
