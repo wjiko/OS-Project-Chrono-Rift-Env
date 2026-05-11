@@ -1,27 +1,3 @@
-// =============================================================================
-//  ASP — Automated Strategic Process
-//  Chrono Rift | CS2006 Operating Systems | Spring 2026
-// =============================================================================
-//
-//  This process manages ALL NPC (enemy) AI decision making.
-//  Each enemy gets its own dedicated pthread — concurrent but synchronized.
-//
-//  SUSPENSION PROTOCOL
-//  -------------------
-//  When a player uses the Ultimate Ability, the Arbiter sends SIGSTOP to this
-//  process (using asp_pid stored in shared memory). This suspends ALL threads
-//  inside ASP for exactly 10 seconds. The Arbiter then sends SIGCONT via its
-//  SIGALRM handler to resume.
-//
-//  This is signal-only enforcement — no flags or pipes used for this.
-//
-//  SIGNAL HANDLING
-//  ---------------
-//  SIGUSR1  ─ Stun: an enemy has been stunned for 3 seconds.
-//  SIGTERM  ─ Game ended; threads exit cleanly.
-//
-// =============================================================================
-
 #include <iostream>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -35,9 +11,9 @@
 GameState* global_state = nullptr;
 volatile bool running = true;
 
-// ── Signal Handlers ───────────────────────────────────────────────────────────
+// Signal Handlers 
 void handle_stun(int) {
-    // SIGUSR1: pause for 3 seconds (enemy stun)
+    // pause for 3 seconds
     sleep(3);
 }
 
@@ -45,7 +21,7 @@ void handle_sigterm(int) {
     running = false;
 }
 
-// ── Enemy AI Thread ───────────────────────────────────────────────────────────
+// Enemy AI Thread 
 // One thread per enemy. Submits Strike or Skip when it is that enemy's turn.
 void* enemy_thread(void* arg) {
     int enemy_id = *(int*)arg;

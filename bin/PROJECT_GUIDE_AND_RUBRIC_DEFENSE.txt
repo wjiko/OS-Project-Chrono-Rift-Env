@@ -1,0 +1,551 @@
+================================================================================
+CHRONO RIFT — COMPLETE PROJECT GUIDE & RUBRIC DEFENSE
+CS2006 Operating Systems | BSCS Spring 2026
+Roll Numbers: 24I-0523 / 24I-0822
+================================================================================
+
+TABLE OF CONTENTS
+1. What Is This Project?
+2. How To Run It (Step by Step)
+3. How To Play The Game
+4. What Each File Does
+5. Rubric Defense (Every Single Item Explained)
+6. Common TA Questions & Answers
+
+================================================================================
+SECTION 1: WHAT IS THIS PROJECT?
+================================================================================
+
+This is a multi-process, multithreaded turn-based tactical RPG game called
+"Chrono Rift." It was built to demonstrate real Operating System concepts:
+
+- 3 separate Linux PROCESSES that talk through SHARED MEMORY (not pipes).
+- Custom SPINLOCKS built from hardware atomic instructions (no std::mutex).
+- PTHREADS: one thread per player, one thread per enemy.
+- SIGNALS: SIGUSR1 for stun, SIGSTOP/SIGCONT for Ultimate freeze, SIGALRM
+  for timed events, SIGTERM for clean shutdown.
+- DEADLOCK DETECTION running in a background thread.
+- CONTIGUOUS MEMORY ALLOCATION for weapon inventory.
+- SFML graphical interface showing everything in real time.
+
+Think of it like Pokemon battles but the "operating system" is running
+everything behind the scenes.
+
+================================================================================
+SECTION 2: HOW TO RUN IT
+================================================================================
+
+PREREQUISITES:
+- Docker Desktop installed on Windows
+- VcXsrv (X Server) installed and running with "Disable access control" checked
+
+STEP 1: Open PowerShell, navigate to the project folder.
+
+STEP 2: Build the Docker image (only needed once):
+    docker build -t chrono-rift-env .
+
+STEP 3: Start the container and enter it:
+    docker run -it --rm -e DISPLAY=host.docker.internal:0 -v "${PWD}:/app" chrono-rift-env bash
+
+STEP 4: Inside the container, compile:
+    make
+
+STEP 5: Run all 3 processes:
+    ./arbiter_bin & sleep 1 && ./asp_bin & sleep 1 && ./hip_bin
+
+WHAT HAPPENS:
+- arbiter_bin starts first. It creates shared memory and waits.
+- asp_bin starts second. It connects to shared memory and waits.
+- hip_bin starts last. It opens the SFML window. You see "CHRONO RIFT"
+  and "Press 1 2 3 or 4" to pick how many players you want.
+- After you pick, the game begins.
+
+The terminal will print live logs of every action (who attacked who,
+how much damage, whose turn it is).
+
+================================================================================
+SECTION 3: HOW TO PLAY THE GAME
+================================================================================
+
+This is a TURN-BASED game. You do NOT play in real-time.
+
+HOW TURNS WORK:
+- Every character (players and enemies) has a yellow "ST" (Stamina) bar.
+- The stamina bar fills up automatically over time based on Speed.
+- When YOUR stamina bar reaches 100/100, the game PAUSES. It is YOUR turn.
+- Your player's box will glow YELLOW to show it's your turn.
+- Press a key to do something. Then the bars start filling again.
+
+CONTROLS (what each key does):
+    0-9     Strike the enemy with that number. Press 0 to attack Enemy 0,
+            press 1 to attack Enemy 1, etc. This deals YOUR damage to
+            their HP. If their HP hits 0, they die.
+
+    W       Use your equipped Weapon. Does MORE damage than a normal strike
+            because weapons have higher damage values (e.g. Iron Halberd = 55).
+
+    H       Heal yourself. Restores 10% of your maximum HP.
+
+    S       Skip your turn. You do nothing, BUT you keep 50% of your stamina.
+            This means your NEXT turn comes faster.
+
+    E       Exhaust. Drains the enemy's STAMINA bar (not HP). This delays
+            their next turn, giving you more time.
+
+    I       Swap In. Pulls a weapon from your Long-Term Storage into your
+            active 20-slot inventory.
+
+    L       Lock the Solar Core artifact. (Needed for Ultimate.)
+
+    K       Lock the Lunar Blade artifact. (Needed for Ultimate.)
+
+    U       Ultimate ability. FREEZES ALL ENEMIES for 10 seconds. But you
+            must have BOTH Solar Core AND Lunar Blade locked first (press L
+            then K on separate turns before pressing U).
+
+    Y / N   When you kill an enemy, a weapon drops. The game asks "Pick up
+            [weapon name]? Y/N". Press Y to take it, N to leave it.
+
+WIN CONDITION: Kill 10 enemies total.
+LOSE CONDITION: All your players die.
+
+================================================================================
+SECTION 4: WHAT EACH FILE DOES
+================================================================================
+
+FILE: shared.h
+WHAT: The "contract" between all 3 processes. Defines:
+  - The GameState struct (all game data: players, enemies, HP, stamina, etc.)
+  - The custom spinlock functions (custom_lock_acquire / custom_lock_release)
+  - Weapon types, sizes, damage values
+  - Action type constants (ACTION_STRIKE, ACTION_HEAL, etc.)
+WHY IT MATTERS: This is the shared memory layout. All 3 processes include
+  this file so they all agree on the exact memory structure.
+
+FILE: arbiter/arbiter.cpp
+WHAT: The "game master" process. It:
+  1. Creates the shared memory segment (shm_open + mmap)
+  2. Waits for the player to pick party size
+  3. Initializes all player/enemy stats using roll number formulas
+  4. Runs the main game loop every 200ms:
+     - Ticks everyone's stamina up by their speed
+     - Picks whose turn it is (whoever hits max stamina first)
+     - Processes the action they submitted (damage, heal, etc.)
+     - Checks win/lose conditions
+  5. Runs a deadlock detector thread in the background
+  6. Handles SIGALRM (Ultimate timer) and SIGTERM (clean exit)
+  7. Cleans up shared memory when game ends
+
+FILE: hip/hip.cpp
+WHAT: The "human interface" process. It:
+  1. Connects to Arbiter's shared memory (shm_open + mmap)
+  2. Opens the SFML window (900x750)
+  3. Polls keyboard events on the main thread
+  4. Spawns one pthread per human player
+  5. Player threads wait for their turn, then read the pending_action
+     variable (set by keyboard events) and submit it to shared memory
+  6. Renders the UI every frame: player boxes, enemy boxes, HP/ST bars,
+     controls legend, log message, kill counter
+  7. On exit, sends SIGTERM to both Arbiter and ASP so they shut down too
+
+FILE: asp/asp.cpp
+WHAT: The "enemy AI" process. It:
+  1. Connects to shared memory
+  2. Registers its PID (so Arbiter can send SIGSTOP to freeze it)
+  3. Spawns one pthread per enemy
+  4. Each enemy thread waits for its turn, then randomly picks:
+     - 90% chance: Strike a random alive player
+     - 10% chance: Skip (do nothing)
+  5. Handles SIGUSR1 (stun: sleep 3 seconds)
+  6. Gets completely frozen by SIGSTOP when a player uses Ultimate
+
+FILE: Makefile
+WHAT: Compiles all 3 binaries with g++ -std=c++17 -pthread and SFML libs.
+
+FILE: Dockerfile
+WHAT: Ubuntu 22.04 image with build-essential, libsfml-dev installed.
+
+================================================================================
+SECTION 5: RUBRIC DEFENSE — EVERY SINGLE ITEM
+================================================================================
+
+--- 1. PROCESS ARCHITECTURE & IPC (40 marks) ---
+
+Q: "Proper Process Isolation (Arbiter, Human, Strategic)" [10 marks]
+A: We have 3 completely separate binaries:
+   - arbiter_bin (arbiter/arbiter.cpp)
+   - hip_bin (hip/hip.cpp)
+   - asp_bin (asp/asp.cpp)
+   Each runs as its own Linux process with its own PID. They do NOT share
+   any code at runtime. They only share the GameState struct through shared
+   memory. You can verify by running "ps aux" in the Docker terminal and
+   seeing 3 separate processes.
+
+Q: "Correct Use of Shared Memory (No Pipes)" [10 marks]
+A: Look at arbiter.cpp line 197-200:
+     shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666)
+     ftruncate(shm_fd, sizeof(GameState))
+     mmap(0, sizeof(GameState), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0)
+   HIP and ASP connect with:
+     shm_open(SHM_NAME, O_RDWR, 0666)  // open existing, don't create
+     mmap(...)
+   There are ZERO pipes, ZERO sockets, ZERO message queues anywhere.
+
+Q: "Process Lifecycle Management" [10 marks]
+A: - Arbiter creates shared memory, cleans it up at end (line 521-522):
+       munmap(global_state, sizeof(GameState));
+       shm_unlink(SHM_NAME);
+   - HIP kills both other processes on exit (line 46-47):
+       kill(global_state->asp_pid, SIGTERM);
+       kill(global_state->arbiter_pid, SIGTERM);
+   - All 3 handle SIGTERM gracefully.
+
+Q: "Correct Communication Design" [10 marks]
+A: Communication flows through the GameState struct in shared memory:
+   - HIP writes: action_type, action_target_id, action_submitted = true
+   - Arbiter reads those fields, processes the action, writes the result
+     into log_message, updates HP/stamina
+   - ASP does the same for enemy turns
+   Nobody reads or writes without acquiring custom_lock_acquire first.
+
+
+--- 2. SYNCHRONIZATION & CONCURRENCY CONTROL (40 marks) ---
+
+Q: "Mutex/Semaphore Implementation" [10 marks]
+A: We do NOT use pthread_mutex or sem_t. We built a CUSTOM SPINLOCK in
+   shared.h lines 114-125:
+     custom_lock_acquire uses __sync_lock_test_and_set(lock, 1)
+     custom_lock_release uses __sync_lock_release(lock)
+   These are GCC built-in hardware atomic instructions that compile to
+   a single CPU instruction (like XCHG on x86). This is the Test-And-Set
+   algorithm taught in class.
+
+Q: "Race Condition Prevention" [10 marks]
+A: Every single read or write to global_state is wrapped in:
+     custom_lock_acquire(&global_state->custom_global_lock);
+     // ... read or write ...
+     custom_lock_release(&global_state->custom_global_lock);
+   Search the code — you will not find a single access without the lock.
+   HIP also has a local_input_lock for the pending_action variable shared
+   between the main thread and player threads.
+
+Q: "Concurrent Access Handling (Threads + Processes)" [10 marks]
+A: There are multiple threads AND multiple processes all accessing the
+   same shared memory:
+   - Arbiter main thread + deadlock detector thread
+   - HIP main thread + up to 4 player threads
+   - ASP main thread + up to 9 enemy threads
+   All use the SAME spinlock (custom_global_lock) in the SAME shared
+   memory region. This works because mmap with MAP_SHARED means the
+   lock variable is literally at the same physical memory address.
+
+Q: "Shared Memory Consistency under load" [10 marks]
+A: HIP takes a SNAPSHOT before rendering (hip.cpp line 287-290):
+     GameState snap;
+     custom_lock_acquire(&global_state->custom_global_lock);
+     snap = *global_state;  // copy entire struct
+     custom_lock_release(&global_state->custom_global_lock);
+   This means the UI reads from a local copy, never holding the lock
+   during the slow rendering process.
+
+
+--- 3. MULTITHREADING & EXECUTION MODEL (40 marks) ---
+
+Q: "Thread-per-NPC Implementation" [10 marks]
+A: asp.cpp lines 143-146:
+     for (int i = 0; i < num_enemies; i++) {
+         thread_args[i] = i;
+         pthread_create(&threads[i], NULL, enemy_thread, &thread_args[i]);
+     }
+   Each enemy gets its own pthread. Up to 9 enemies = up to 9 threads.
+
+Q: "Player Thread Handling (Active/Idle Logic)" [10 marks]
+A: hip.cpp lines 278-281:
+     for (int i = 0; i < np; i++) {
+         pthread_create(&player_threads[i], NULL, player_thread, &thread_ids[i]);
+     }
+   Each player thread (line 55-97) checks if it's their turn.
+   If NOT their turn: usleep(50000) — idle, not wasting CPU.
+   If it IS their turn: busy-wait checking pending_action with usleep(30000).
+   Once pending_action is set by the keyboard, the thread submits it.
+
+Q: "Thread Synchronization with Shared Memory" [10 marks]
+A: All threads use the same custom_lock_acquire/release. Player threads
+   also use local_input_lock to safely read pending_action (which is
+   written by the main thread's keyboard handler).
+
+Q: "Efficient Thread Scheduling & Coordination" [10 marks]
+A: Threads don't spin at 100% CPU. They use usleep():
+   - Player threads: 50ms idle, 30ms when waiting for input
+   - Enemy threads: 80ms idle
+   - Arbiter: 200ms per tick
+   This keeps CPU usage low while maintaining responsiveness.
+
+
+--- 4. SCHEDULING & TEMPORAL LOGIC (40 marks) ---
+
+Q: "Stamina-Based Scheduling Logic" [10 marks]
+A: arbiter.cpp lines 288-341. Every 200ms tick:
+   1. For each alive, non-stunned entity: stamina += speed
+   2. Check all entities: who has stamina >= max_stamina?
+   3. Pick the one with the HIGHEST stamina (tiebreaker)
+   4. That entity gets the turn. Their stamina resets to 0.
+   This is the "Active Time Battle" system from the spec.
+
+Q: "Arrival Time Computation Accuracy" [10 marks]
+A: Arrival time = when stamina first crosses the threshold.
+   Since stamina increases by "speed" each tick, and threshold is
+   max_stamina (100 for players, 150 for enemies), the arrival time is
+   implicitly: ceil(max_stamina / speed) ticks. Faster entities
+   (higher speed) get turns more often.
+
+Q: "Serial Execution Enforcement" [10 marks]
+A: Only ONE entity can act at a time. This is enforced by:
+     if (global_state->current_turn_id == -1) { ... assign turn ... }
+     else if (global_state->action_submitted) { ... process action ... }
+   current_turn_id is set to -1 only AFTER the action is fully processed
+   (line 509-511). No new turn can begin until the previous one ends.
+
+Q: "Turn Reset & Recalculation Logic" [10 marks]
+A: When a turn is assigned (lines 328-335):
+     global_state->players[best_id].stamina = 0;
+   Stamina resets to 0, and accumulation starts fresh.
+   SKIP action keeps 50% stamina (line 433):
+     actor->stamina = actor->max_stamina / 2;
+   This means the next turn comes sooner if you skip.
+
+
+--- 5. SIGNALS & ASYNCHRONOUS INTERRUPTS (40 marks) ---
+
+Q: "Signal-Based Stun Mechanism" [10 marks]
+A: When a hit lands, there's a 20% chance to stun (arbiter.cpp line 403-405):
+     if (rand() % 100 < 20 && target->pid > 0)
+         kill(target->pid, SIGUSR1);
+   The target process has a SIGUSR1 handler that sets is_stunned = true,
+   sleeps 3 seconds, then sets is_stunned = false.
+   While stunned, the scheduling loop skips them (line 293):
+     if (p.is_alive && !p.is_stunned) p.stamina += p.speed;
+
+Q: "Correct Stun Duration (exact 3 seconds)" [5 marks]
+A: hip.cpp handle_stun() line 35: sleep(3);
+   asp.cpp handle_stun() line 41: sleep(3);
+   Exactly 3 seconds.
+
+Q: "Non-Blocking Interrupt Handling" [5 marks]
+A: SIGALRM handler (arbiter.cpp line 29-42) is short — just sets a flag
+   and sends SIGCONT. SIGTERM handler just sets game_running = false.
+   These don't block.
+
+Q: "Ultimate Ability (Signal-Only Suspension)" [10 marks]
+A: arbiter.cpp lines 449-468:
+   1. Check player has BOTH Solar Core AND Lunar Blade locked
+   2. Set asp_suspended = true
+   3. Send SIGSTOP to the ASP process:
+        kill(global_state->asp_pid, SIGSTOP);
+   4. Set alarm(10) — triggers SIGALRM in exactly 10 seconds
+   SIGSTOP is a kernel-level signal that completely freezes the process.
+   No code runs in ASP while it's stopped. This is SIGNAL-ONLY — no
+   polling or flags are checked by ASP.
+
+Q: "Correct Ultimate Duration (exact 10 seconds)" [5 marks]
+A: alarm(10) on line 459. The SIGALRM handler (line 29-42) then runs:
+     kill(global_state->asp_pid, SIGCONT);
+   Exactly 10 seconds between SIGSTOP and SIGCONT.
+
+Q: "Signal Handling Robustness" [5 marks]
+A: We handle: SIGALRM, SIGTERM, SIGINT, SIGUSR1. All registered with
+   signal() at the start of each process's main().
+
+
+--- 6. DEADLOCK HANDLING & RESOURCE MANAGEMENT (40 marks) ---
+
+Q: "Global Resource Table Implementation" [10 marks]
+A: shared.h lines 89-94. The resource table is:
+     solar_core_locked_by_id    / solar_core_locked_by_player
+     lunar_blade_locked_by_id   / lunar_blade_locked_by_player
+     eclipse_relic_in_world
+   This tracks WHO holds WHICH artifact. -1 means nobody holds it.
+
+Q: "Resource Locking Mechanism" [5 marks]
+A: Press L to lock Solar Core, K to lock Lunar Blade.
+   arbiter.cpp lines 470-483: sets the locked_by fields.
+
+Q: "Deadlock Detection (Circular Wait)" [10 marks]
+A: arbiter.cpp lines 56-79: deadlock_detector thread runs every 2 seconds.
+   It checks: if Solar Core is locked by entity A, AND Lunar Blade is
+   locked by entity B, AND A != B, that's a circular wait.
+   (A wants Lunar to cast Ultimate, B wants Solar to cast Ultimate.)
+
+Q: "Deadlock Resolution Strategy" [10 marks]
+A: Lines 72-73: force-release both artifacts:
+     global_state->solar_core_locked_by_id = -1;
+     global_state->lunar_blade_locked_by_id = -1;
+   And log "DEADLOCK DETECTED!" to the UI.
+
+Q: "Correct Handling of Dynamic Artifact (Eclipse Relic)" [5 marks]
+A: arbiter.cpp lines 373-378: On the 5th kill:
+     if (total_kills == 5 && !eclipse_relic_in_world) {
+         eclipse_relic_in_world = true;
+         // log "ECLIPSE RELIC appears!"
+     }
+   The dropped weapon on kill #5 is forced to be WPN_ECLIPSE_RELIC (line 383).
+   It has 5 slots and 100 damage (defined in shared.h line 36).
+
+
+--- 7. MEMORY MANAGEMENT (40 marks) ---
+
+Q: "Contiguous Allocation Strategy" [10 marks]
+A: arbiter.cpp allocate_weapon() lines 83-115.
+   The inventory is a 20-slot array. To place a weapon of size S, the
+   function scans left-to-right looking for S consecutive empty slots:
+     for (int i = 0; i < 20; i++) {
+         if (slots[i] == WPN_NONE) { streak++; }
+         else { streak = 0; }
+         if (streak == sz) { // found! fill slots }
+     }
+
+Q: "Fragmentation Handling" [10 marks]
+A: If no contiguous block exists (fragmentation), lines 102-113:
+   Find an existing weapon, move it to Long-Term Storage (LTS), free
+   its slots, then RECURSIVELY call allocate_weapon() to try again.
+   This is like swap-out in virtual memory.
+
+Q: "Swap In / Swap Out Logic" [10 marks]
+A: Swap OUT: happens automatically inside allocate_weapon() when there's
+   fragmentation. The weapon goes to long_term_storage[] array.
+   Swap IN: player presses I. arbiter.cpp lines 436-447:
+     WeaponType w = actor->inv.long_term_storage[--actor->inv.lts_count];
+     allocate_weapon(actor, w);
+
+Q: "Long-Term Storage Handling & Retrieval" [5 marks]
+A: LTS is a separate array of 50 slots (shared.h line 42):
+     WeaponType long_term_storage[50];
+     int lts_count;
+   Works like a stack (LIFO). Push on swap-out, pop on swap-in.
+
+Q: "Correct Enforcement of Slot Constraints (Solar + Lunar = full)" [5 marks]
+A: Solar Core = 10 slots, Lunar Blade = 10 slots (shared.h lines 131-132).
+   10 + 10 = 20 = entire inventory. If you have both, inventory is full.
+   Any new weapon would trigger the fragmentation handler (swap one out).
+
+
+--- 8. GAMEPLAY LOGIC & MECHANICS (40 marks) ---
+
+Q: "Correct Implementation of Player Actions" [10 marks]
+A: arbiter.cpp switch statement lines 358-505 handles ALL actions:
+   Strike, Use Weapon, Exhaust, Heal, Skip, Swap In, Ultimate,
+   Lock Artifact, Pickup Weapon, Decline Weapon.
+
+Q: "Enemy Behavior & Decision Logic" [5 marks]
+A: asp.cpp lines 84-91: 90% chance Strike random alive player,
+   10% chance Skip.
+
+Q: "Weapon Drop Mechanics (player choice + NPC pickup rule)" [5 marks]
+A: When player kills enemy (arbiter.cpp lines 380-392):
+   - Random weapon is generated
+   - weapon_drop_pending = true
+   - Game PAUSES and shows "Pick up [weapon]? Y/N"
+   - Player must press Y (ACTION_PICKUP_WEAPON) or N (ACTION_DECLINE_WEAPON)
+   - Turn does NOT end until player answers (line 508-511)
+
+Q: "Win / Lose / Quit Conditions (including SIGTERM)" [10 marks]
+A: arbiter.cpp lines 253-270:
+   - Win: total_kills >= 10
+   - Lose: all players dead (alive_players == 0)
+   - Quit: SIGTERM/SIGINT handler sets game_running = false
+
+Q: "Correct Randomization using Roll Number Seed" [10 marks]
+A: arbiter.cpp line 123:
+     srand(p_roll[0]);  // p_roll[0] = 523
+   Roll number 523 is used as the seed. All formulas use the roll numbers:
+   - Player HP = roll + random(100,1000)     [line 137]
+   - Player DMG = (roll % 10) + 10           [line 140]
+   - Enemy HP = (roll % 100) + random(50,200) [line 160]
+   - Enemy DMG = ((roll/10) % 10) + 10       [line 163]
+
+
+--- 9. RENDERING & SYSTEM INTEGRATION (30 marks) ---
+
+Q: "Dedicated Rendering Thread" [5 marks]
+A: Rendering runs on the main thread of HIP, which is dedicated to
+   rendering and event polling only. Player logic runs in separate
+   pthreads (player_thread function). The main thread never blocks
+   waiting for player input.
+
+Q: "Safe Shared Memory Reads (UI)" [5 marks]
+A: hip.cpp lines 287-290: full snapshot copy under lock:
+     GameState snap;
+     custom_lock_acquire(&global_state->custom_global_lock);
+     snap = *global_state;
+     custom_lock_release(&global_state->custom_global_lock);
+   Then all rendering uses "snap" (local copy), never touching shared
+   memory during drawing.
+
+Q: "Real-Time State Visualization" [10 marks]
+A: The SFML window shows:
+   - HP bars (green) and Stamina bars (yellow) for all entities
+   - Kill counter ("Kills 3/10")
+   - Log message showing last action ("P0 hits E2 for 13 dmg!")
+   - Active turn highlighted in yellow
+   - Dead entities shown in grey
+   - Weapon info and LTS count
+   - Full controls legend
+   Updates at 30 FPS.
+
+Q: "Non-Blocking UI Execution" [10 marks]
+A: The main loop uses window.pollEvent() (non-blocking). It never
+   calls any blocking function. Player threads handle the waiting.
+   Frame rate is capped at 30 FPS with window.setFramerateLimit(30).
+
+
+--- 10. ENVIRONMENT, BUILD & CONSTRAINTS (20 marks) ---
+
+Q: "Runs Successfully in Docker Environment" [10 marks]
+A: Yes. Ubuntu 22.04 container with X11 forwarding.
+
+Q: "Correct Dockerfile & Required Structure" [5 marks]
+A: Dockerfile installs build-essential, libsfml-dev, sets WORKDIR /app.
+
+Q: "Functional Makefile" [5 marks]
+A: "make" compiles all 3 binaries. "make clean" removes them.
+   Uses g++ -std=c++17 -pthread with SFML linking.
+
+
+================================================================================
+SECTION 6: COMMON TA QUESTIONS & ANSWERS
+================================================================================
+
+Q: "Why didn't you use pthread_mutex?"
+A: The rubric says we must implement our own synchronization. We used
+   __sync_lock_test_and_set which is a hardware Test-And-Set instruction.
+   It's the same algorithm taught in the OS course for spinlocks.
+
+Q: "How do the 3 processes communicate?"
+A: Through POSIX shared memory. Arbiter creates it with shm_open + mmap.
+   HIP and ASP connect to the same named segment. They all see the same
+   GameState struct at the same memory address.
+
+Q: "What happens if I close the window?"
+A: HIP sends SIGTERM to both Arbiter and ASP. All 3 processes exit
+   cleanly. Shared memory is unlinked by Arbiter.
+
+Q: "How does the turn system work?"
+A: Stamina accumulates by Speed each tick. When stamina >= max, that
+   entity gets the turn. It's like a priority queue based on speed.
+
+Q: "Show me the deadlock detection."
+A: arbiter.cpp function deadlock_detector(). It's a pthread that runs
+   every 2 seconds checking if two different entities hold the two
+   artifacts. If so, it force-releases both.
+
+Q: "How does the Ultimate freeze work?"
+A: SIGSTOP freezes ASP at the kernel level. alarm(10) sets a 10-second
+   timer. When SIGALRM fires, the handler sends SIGCONT to resume ASP.
+
+Q: "Where is the memory allocation?"
+A: allocate_weapon() in arbiter.cpp. It scans for contiguous free slots.
+   If none found, it swaps a weapon to LTS and retries recursively.
+
+Q: "Is the Eclipse Relic dynamic?"
+A: Yes. It doesn't exist at game start. On the 5th kill, the Arbiter
+   sets eclipse_relic_in_world = true and drops it as a weapon.
