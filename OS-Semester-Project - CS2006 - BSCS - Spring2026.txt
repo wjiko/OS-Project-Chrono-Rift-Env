@@ -1,0 +1,93 @@
+NUCES Computer Science
+Operating Systems Project Spring 2026
+Course: CS2006
+Degree: BSCS
+
+Project Title: Chrono Rift - A Multi-Process Tactical RPG
+
+==================================================
+1. OVERVIEW
+==================================================
+Chrono Rift is a multi-process, multithreaded turn-based tactical RPG. Students are required to build a game engine from scratch using core Operating System concepts taught in class, including POSIX shared memory, custom synchronization primitives, multithreading, signals, and deadlock management. The game must feature a graphical interface using SFML.
+
+==================================================
+2. PROCESS ARCHITECTURE & IPC
+==================================================
+The system must be divided into three distinct, isolated processes communicating exclusively through POSIX Shared Memory (shm_open, mmap). Pipes, sockets, or message queues are STRICTLY PROHIBITED.
+
+Process 1: Arbiter (The Game Master)
+- Owns the shared GameState.
+- Calculates formulas, manages scheduling, and processes combat results.
+- Runs a background thread for Deadlock Detection.
+
+Process 2: HIP (Human Interface Process)
+- Manages the SFML GUI.
+- Handles user inputs (0-9, W, H, S, E, I, L, K, U, Y/N).
+- Spawns one pthread per active human player.
+- Is responsible for safely terminating Arbiter and ASP on exit to prevent orphans.
+
+Process 3: ASP (Artificial Strategic Process)
+- Controls enemy AI.
+- Spawns one pthread per active enemy.
+- Registers its PID for signal-based suspension.
+
+==================================================
+3. SYNCHRONIZATION & CONCURRENCY
+==================================================
+High-level libraries like std::mutex, pthread_mutex_t, and sem_t are STRICTLY PROHIBITED for Inter-Process Communication.
+- Students must implement a Custom Spinlock using hardware atomic instructions (e.g., __sync_lock_test_and_set).
+- All reads/writes to the shared memory must be wrapped in this custom lock to prevent race conditions.
+
+==================================================
+4. SCHEDULING & TEMPORAL LOGIC (TURN SYSTEM)
+==================================================
+The game does not use round-robin turns. It uses an Active Time Battle (Stamina Accumulator) system.
+- Every system tick, an entity's Stamina increases by their Speed.
+- Max stamina is 100 for players, 150 for enemies.
+- When an entity reaches max stamina, the engine pauses accumulation and grants them the turn.
+- If multiple entities cross the threshold simultaneously, the one with the highest overflow stamina goes first.
+- Turn actions: Strike, Heal (10%), Exhaust (drain enemy stamina), Skip (save 50% stamina), Use Weapon, Swap LTS.
+
+==================================================
+5. SIGNALS & ASYNCHRONOUS INTERRUPTS
+==================================================
+The project must utilize OS signals for asynchronous events:
+- STUN MECHANIC: Every hit has a 20% chance to stun the target. Must be implemented by sending a SIGUSR1 to the target's process/thread.
+- ULTIMATE ABILITY: When a player uses their Ultimate, they freeze all enemies for exactly 10 seconds.
+  - Must be implemented purely via Signals: Send SIGSTOP to the ASP process.
+  - Use alarm(10) to trigger a SIGALRM handler.
+  - The SIGALRM handler must then send SIGCONT to ASP to resume combat.
+
+==================================================
+6. DEADLOCK HANDLING & RESOURCES
+==================================================
+- Artifact Locking: Players can press keys to lock the 'Solar Core' and 'Lunar Blade'. Both are required to cast the Ultimate ability.
+- Circular Wait: If Player 1 locks Solar Core and waits for Lunar Blade, while Player 2 locks Lunar Blade and waits for Solar Core, a deadlock occurs.
+- Deadlock Detection: The Arbiter must run a background pthread checking a global resource table every few seconds.
+- Resolution: If circular wait is detected, the Arbiter must force-release both locks and log the intervention to the UI.
+
+==================================================
+7. MEMORY & INVENTORY MANAGEMENT
+==================================================
+Each entity has a 20-slot contiguous inventory array.
+- Weapons have different slot sizes (e.g., Solar Core = 10, Iron Halberd = 7).
+- Contiguous Allocation: The engine must find contiguous empty slots to place a weapon.
+- Fragmentation: If 10 slots are free but scattered, the engine must evict an existing weapon to Long-Term Storage (LTS array) to create a contiguous block.
+- Weapon Drops: Upon killing an enemy, a weapon drops. The player must be prompted (Y/N) to pick it up.
+- Dynamic Relic: The 'Eclipse Relic' must be dynamically introduced into the shared memory world strictly after the 5th kill occurs.
+
+==================================================
+8. FORMULAS & RANDOMIZATION
+==================================================
+Students must use their exact University Roll Numbers to seed the random number generator (e.g., srand(523)).
+- Player HP: Roll No + random(100, 1000)
+- Player DMG: (Roll No % 10) + 10
+- Enemy HP: (Roll No % 100) + random(50, 200)
+- Win Condition: 10 total enemy kills.
+
+==================================================
+9. ENVIRONMENT & SUBMISSION
+==================================================
+- Must compile via a Makefile.
+- Must be Dockerized with a provided Dockerfile.
+- GUI must be rendered using SFML and forwarded via X11 to the host machine.

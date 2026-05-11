@@ -1,0 +1,64 @@
+==================================================
+CHRONO RIFT - DOCKER & X11 SETUP GUIDE
+==================================================
+
+Because this Operating Systems project requires strict POSIX compliance (shared memory, signals, pthreads), it must be run in a Linux environment. For ease of evaluation, the project is fully Dockerized.
+
+Because the project features a graphical user interface (SFML), we must use X11 Forwarding to pass the GUI from inside the Linux container out to your Windows host machine.
+
+Follow these steps carefully to run the game.
+
+--------------------------------------------------
+STEP 1: INSTALL REQUIRED SOFTWARE ON WINDOWS
+--------------------------------------------------
+1. Docker Desktop: Ensure Docker is installed and running on your Windows machine.
+2. VcXsrv (X-Server): Download and install VcXsrv (Windows X Server). This is required to receive the graphical window from the Docker container.
+
+--------------------------------------------------
+STEP 2: CONFIGURE VCXSRV (CRITICAL)
+--------------------------------------------------
+1. Launch "XLaunch" from your Windows start menu.
+2. Display Settings: Choose "Multiple windows" -> Next.
+3. Client Startup: Choose "Start no client" -> Next.
+4. Extra Settings (CRITICAL):
+   - Check "Clipboard"
+   - Check "Primary Selection"
+   - Check "Native opengl"
+   - **CHECK "Disable access control"** (If you miss this step, Docker will be denied access to display the window).
+5. Click Next, then Finish.
+
+--------------------------------------------------
+STEP 3: BUILD THE DOCKER IMAGE
+--------------------------------------------------
+Open a terminal (Command Prompt or PowerShell) and navigate to the project directory containing the Dockerfile.
+
+Run the following command to build the image:
+> docker build -t chrono-rift-env .
+
+This will download an Ubuntu 22.04 image and install g++, make, and libsfml-dev.
+
+--------------------------------------------------
+STEP 4: RUN THE GAME
+--------------------------------------------------
+In PowerShell, run the following command to start the container, mount your current directory, pass the X11 display variable, and execute the game:
+
+> docker run -it --rm -e DISPLAY=host.docker.internal:0 -v "${PWD}:/app" chrono-rift-env bash -c "make && ./arbiter_bin & sleep 1 && ./asp_bin & sleep 1 && ./hip_bin"
+
+Explanation of the command:
+- `-it`: Runs interactively.
+- `--rm`: Removes the container automatically when the game closes.
+- `-e DISPLAY=host.docker.internal:0`: Tells Linux to send graphical output to your Windows VcXsrv.
+- `-v "${PWD}:/app"`: Mounts your Windows project folder directly into the container's /app directory.
+- `bash -c "..."`: Compiles the code and launches the three multi-process binaries in the correct order.
+
+--------------------------------------------------
+TROUBLESHOOTING
+--------------------------------------------------
+Q: I get "Failed to open X11 display; make sure the DISPLAY environment variable is set correctly".
+A: Ensure VcXsrv is running in your Windows system tray. Ensure you checked "Disable access control" during XLaunch setup.
+
+Q: The container crashes immediately.
+A: Ensure you have run 'make' inside the container (the run command above does this automatically).
+
+Q: I hear beeps or see logs but no window opens.
+A: The GUI is failing to forward. Check your Windows Firewall and ensure it is not blocking VcXsrv from accepting connections from Docker.
